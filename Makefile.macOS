@@ -1,0 +1,72 @@
+UNAME_S := $(shell uname -s)
+ARCH := $(shell uname -m)
+
+CXX := g++
+CC := gcc
+
+ifeq ($(UNAME_S),Darwin)
+    # macOS-specific settings
+    ifeq ($(ARCH),arm64)
+        CXXFLAGS := -std=c++17 -I/opt/homebrew/include
+        LDFLAGS := -L/opt/homebrew/lib -lcryptopp -lz -lre2
+        INSTALL_PATH := /opt/homebrew/bin
+    else
+        CXXFLAGS := -I/usr/local/include
+        LDFLAGS := -L/usr/local/lib -lcryptopp -lz -lre2
+        INSTALL_PATH := /usr/local/bin
+    endif
+else
+    # Linux settings
+    CXXFLAGS := -I/usr/local/include
+    STATIC_LIBS := /usr/lib/libz.a /usr/local/lib/libre2.a /usr/local/lib/libcryptopp.a
+    LDFLAGS := $(STATIC_LIBS) -lpthread -static -static-libstdc++
+    INSTALL_PATH := /usr/local/bin
+endif
+
+.PHONY: all
+all: static-install
+
+.PHONY: static-install
+static-install: pka2xml-static patch-static install
+
+.PHONY: static-install-docker
+static-install-docker: pka2xml-static-docker patch-static install
+
+.PHONY: dynamic-install
+dynamic-install: pka2xml-dynamic patch-dynamic install
+
+.PHONY: pka2xml-static
+pka2xml-static: main.cpp
+ifeq ($(UNAME_S),Darwin)
+	$(CXX) -o pka2xml main.cpp $(CXXFLAGS) $(LDFLAGS)
+else
+	$(CXX) -o pka2xml main.cpp $(CXXFLAGS) $(LDFLAGS)
+endif
+
+.PHONY: pka2xml-static-docker
+pka2xml-static-docker: main.cpp
+	$(CXX) -o pka2xml main.cpp -I/usr/include /usr/lib/x86_64-linux-gnu/libz.a /usr/lib/x86_64-linux-gnu/libre2.a /usr/lib/x86_64-linux-gnu/libcryptopp.a -lpthread -static -static-libstdc++
+
+.PHONY: pka2xml-dynamic
+pka2xml-dynamic: main.cpp
+	$(CXX) -o pka2xml main.cpp $(CXXFLAGS) $(LDFLAGS)
+
+.PHONY: patch-static
+patch-static: patch.c
+ifeq ($(UNAME_S),Darwin)
+	$(CC) -o patch patch.c
+else
+	$(CC) -o patch patch.c -static -static-libgcc
+endif
+
+.PHONY: patch-dynamic
+patch-dynamic: patch.c
+	$(CC) -o patch patch.c
+
+install:
+	cp patch $(INSTALL_PATH)/PacketTracer
+	cp pka2xml $(INSTALL_PATH)
+
+clean:
+	rm -f patch pka2xml
+

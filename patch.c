@@ -2,7 +2,18 @@
 #include <stdlib.h>
 
 #include <fcntl.h> // open, pid_t
-#include <sys/ptrace.h> // ptrace
+
+//ptrace
+#ifdef __APPLE__
+// macOS: stubbed or replaced
+#include <sys/types.h>
+#include <sys/ptrace.h>
+#define PTRACE_ATTACH PT_ATTACHEXC
+#define PTRACE_DETACH PT_DETACH
+#else
+#include <sys/ptrace.h>
+#endif
+
 #include <sys/wait.h> // waitpid
 #include <unistd.h> // pread, pwrite
 
