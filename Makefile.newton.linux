@@ -1,0 +1,5 @@
+.PHONY: build
+
+build:
+	g++ -o pka2xml main.cpp -I/usr/local/include -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu -L/usr/local/lib -lre2 -lcryptopp -lz -lpthread -static-libstdc++
+
