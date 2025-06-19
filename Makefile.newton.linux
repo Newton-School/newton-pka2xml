@@ -1,5 +1,9 @@
 .PHONY: build
 
 build:
-	g++ -O3 -o pka2xml main.cpp -I/usr/local/include -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu -L/usr/local/lib -lre2 -lcryptopp -lz -lpthread -static-libstdc++
-
+	g++ -static -O3 -o pka2xml main.cpp \
+		-I/usr/local/include \
+		-L/usr/local/lib \
+		-L/usr/lib/x86_64-linux-gnu \
+		-l:libre2.a -l:libcryptopp.a -l:libz.a -lpthread \
+		-static-libgcc -static-libstdc++
